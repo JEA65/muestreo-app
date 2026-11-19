@@ -28,3 +28,13 @@ Las claves quedan como hashes en las propiedades privadas del script. No ubicarl
 La carpeta conserva sus permisos actuales. Los archivos heredan el acceso de la carpeta.
 La app requiere estar abierta para enviar; no promete envío con la app cerrada. Los archivos locales se conservan.
 Apps Script tiene cuotas. Probar la concurrencia y el volumen real del equipo antes de una campaña masiva.
+
+ACTIVACIÓN POR QR (sin escribir claves)
+Una vez creado un acceso desde el menú Muestreo de la planilla, el responsable puede preparar un QR privado:
+1. Guardar fuera del repositorio un .txt con dos líneas: Código del equipo: equipo-XX y Clave de envío: la clave generada.
+2. En la carpeta del proyecto ejecutar npm ci y luego npm run crear-qr -- ruta-del-acceso.txt carpeta-privada-fuera-del-repositorio.
+3. Compartir la tarjeta HTML o el PNG solo con la persona asignada a ese equipo. No subirlos a GitHub ni a la carpeta pública.
+4. Escanear con la cámara, abrir en Chrome (Android) o Safari (iPhone) y tocar Activar y comenzar. Confirmar que Muestreo muestra Envío a Google configurado.
+Cada celular debe tener su propio equipo. El QR es reutilizable y funciona como una credencial: se revoca desde el menú Muestreo > Revocar acceso de un celular.
+La clave está en el fragmento del enlace, se elimina de la barra de direcciones al abrir y se guarda en IndexedDB al activar. No se incluye en el código publicado ni en respaldos.
+Si aparece una versión anterior de la app, recargar con internet antes de escanear de nuevo. Al abrir la app instalada comprobar que indica Envío a Google configurado antes de salir a campo.

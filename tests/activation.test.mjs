@@ -1,0 +1,4 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {activationLink,parseActivation,DEFAULT_ENDPOINT} from '../sync.js';
+const token='a'.repeat(64);
+test('activación conserva equipo y clave solo en fragmento, destino fijo',()=>{const url=new URL(activationLink('equipo-01',token));assert.equal(url.search,'');assert.equal(url.pathname,'/muestreo-app/');assert.deepEqual(parseActivation(url.hash),{deviceId:'equipo-01',token,endpoint:DEFAULT_ENDPOINT});assert.equal(url.origin,'https://jea65.github.io');});
+test('rechaza enlaces truncados, versiones desconocidas y destinos inyectados',()=>{for(const h of ['#activar=v1.equipo-01.corta','#activar=v2.equipo-01.'+token,'#activar=v1.<script>.'+token,'#activar=v1.equipo-01.'+token+'&endpoint=https://otro.test'])assert.throws(()=>parseActivation(h));assert.equal(parseActivation('#otro'),null);});

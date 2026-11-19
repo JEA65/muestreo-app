@@ -1,7 +1,9 @@
 import {metrics,sections,completedEnvironment,newRecord,validate,finalize,escapeHTML as e} from './core.js';
 import {allRecords,getDraft,putDraft,clearDraft,putRecord,getSettings,putSettings,acknowledgeRevision} from './db.js';
-import {DEFAULT_ENDPOINT,validEndpoint,isPending,sendRecord} from './sync.js';
-let syncBusy=false,screen='dashboard',syncMessage='',nextAttempt=0;
+import {DEFAULT_ENDPOINT,validEndpoint,isPending,sendRecord,parseActivation} from './sync.js';
+let activationHash=location.hash.startsWith('#activar=')?location.hash:'';
+if(activationHash)history.replaceState(null,'',location.pathname+location.search);
+let syncBusy=false,screen=activationHash?'activation':'dashboard',syncMessage='',nextAttempt=0;
 const $=s=>document.querySelector(s);let current=null,step=0,records=[],queue=Promise.resolve(),installPrompt=null,photoBusy=false;
 const steps=['Sitio','Mediciones','Ambiente','Fotos','Revisión'];
 const labels={campana:'Campaña',codigo:'Código del sitio',nombre:'Cuerpo de agua',tipo:'Tipo de ambiente',cuenca:'Cuenca',localidad:'Localidad / partido',fecha:'Fecha',hora:'Hora',observadores:'Observadores',latitud:'Latitud',longitud:'Longitud',precision:'Precisión GPS (m)',gpsFecha:'Fecha de captura GPS',equipo:'Equipo / identificación',calibracion:'Calibración / verificación del equipo',observaciones:'Observaciones generales'};
@@ -45,7 +47,7 @@ function measurementTable(r){return `<table class="measure-table"><thead><tr><th
 function showReport(r){const fields=Object.entries(labels).filter(([key])=>key!=='observaciones');$('#report').innerHTML=`<div class="report-toolbar"><button id="close-report">Volver a la app</button><button class="primary" id="print">Imprimir / guardar PDF</button></div><article class="sheet"><header class="report-header"><img class="report-logo" src="./ada.svg" alt="ADA · Autoridad del Agua" width="120" height="60"><p>CAMPAÑAS DE CALIDAD DE AGUA</p><h1>Ficha de caracterización<br>del sitio</h1><span>${e(r.fields.codigo||'Sin código')} · ${e(r.fields.fecha||'')} · ${e(r.fields.hora||'')}</span></header><p class="report-meta">${r.status==='draft'?'BORRADOR · ':''}Registro ${e(r.id)} · Revisión ${r.revision}<br>${isPending(r)?"Guardado local · pendiente de sincronizar":"Datos, fotos y PDF confirmados en Google"}</p><h2>Identificación y ubicación</h2><dl class="review">${fields.map(([key,label])=>`<div><dt>${e(label)}</dt><dd>${e(r.fields[key]||'Sin completar')}</dd></div>`).join('')}</dl><h2>Mediciones in situ</h2>${measurementTable(r)}<h2>Registro fotográfico</h2>${r.photos.length?`<div class="report-photos">${r.photos.map((p,i)=>`<figure><img src="${p.data}" alt="Foto ${i+1}"><figcaption>${i+1}. ${e(p.caption||'Sin descripción')}</figcaption></figure>`).join('')}</div>`:'<p>Sin fotos adjuntas.</p>'}<h2>Observaciones generales</h2><p class="preserve">${e(r.fields.observaciones||'Sin completar')}</p>${environmentReport(r)}<footer>Registro de observaciones de campo. Las observaciones compatibles con floraciones no constituyen identificación taxonómica ni confirman toxinas.</footer></article>`;document.body.classList.add('report-open');window.scrollTo(0,0);$('#close-report').onclick=()=>document.body.classList.remove('report-open');$('#print').onclick=()=>window.print();}
 function download(content,name,type){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 async function offlineStatus(){try{if(!('serviceWorker' in navigator))throw new Error();const registration=await navigator.serviceWorker.register('./sw.js');await navigator.serviceWorker.ready;if($('#offline-state'))$('#offline-state').textContent='App disponible sin conexión en este dispositivo. Conservá los datos del navegador para mantener tus registros.';registration.addEventListener('updatefound',()=>{});}catch{if($('#offline-state'))$('#offline-state').textContent='No se pudo preparar el modo sin conexión. Usá localhost o una dirección HTTPS.';}}
-dashboard().then(()=>syncAll()).catch(()=>{$('#app').innerHTML='<section class="panel"><h1>No se pudo abrir el almacenamiento</h1><p>Esta app necesita almacenamiento del navegador. Cerrá otras pestañas de Muestreo y volvé a abrirla. Si continúa, verificá permisos y espacio disponible; no uses modo privado.</p></section>';});
+(activationHash?activateDevice():dashboard().then(()=>syncAll())).catch(()=>{$('#app').innerHTML='<section class="panel"><h1>No se pudo abrir el almacenamiento</h1><p>Esta app necesita almacenamiento del navegador. Cerrá otras pestañas de Muestreo y volvé a abrirla. Si continúa, verificá permisos y espacio disponible; no uses modo privado.</p></section>';});
 
 
 function environmentReport(record) {
@@ -61,7 +63,7 @@ async function configureSync(){
  $('#sync-form').onsubmit=async event=>{event.preventDefault();const next={endpoint:$('#endpoint').value.trim(),deviceId:$('#device').value.trim(),token:$('#token').value.trim()||config.token};if(!validEndpoint(next.endpoint)){notify('Usá la dirección HTTPS de Apps Script terminada en /exec.');return;}if(!next.token||next.token.length<32){notify('Ingresá la clave de envío del equipo.');return;}if(syncBusy){notify('Esperá a que termine el envío actual.');return;}try{await putSettings(next);await dashboard();syncAll(true);}catch{notify('No se pudo guardar la configuración.');}};
 }
 async function syncAll(manual=false){
- if(syncBusy||(!manual&&Date.now()<nextAttempt))return;
+ if(screen==='activation'||syncBusy||(!manual&&Date.now()<nextAttempt))return;
  if(!navigator.onLine){if(manual)notify('Sin conexión. Los puntos quedan guardados para enviar después.');return;}
  syncBusy=true;let done=0,failures=0,lastError='';
  try{const config=await getSettings();if(!config?.endpoint){if(manual)notify('Primero configurá el envío.');return;}const pending=(await allRecords()).filter(isPending);if(!pending.length){if(manual)notify('No hay registros pendientes.');return;}
@@ -75,3 +77,13 @@ window.addEventListener('online',()=>syncAll(true));
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')syncAll();});
 setInterval(()=>{if(document.visibilityState==='visible')syncAll();},60000);
 
+
+async function activateDevice(){
+ screen='activation';let incoming;
+ try{incoming=parseActivation(activationHash);}catch(err){activationHash='';$('#app').innerHTML='<section class="panel"><h1>No se pudo activar</h1><p>'+e(err.message)+'</p><button id="activation-back">Volver a Muestreo</button></section>';$('#activation-back').onclick=dashboard;return;}
+ activationHash='';const previous=await getSettings();
+ $('#app').innerHTML='<section class="panel"><p class="eyebrow">ACTIVACIÓN POR QR</p><h1>Activar este celular</h1><p>Equipo: <strong>'+e(incoming.deviceId)+'</strong></p><p>Guardaremos el acceso en este dispositivo para enviar los puntos, las fotos y las fichas a la carpeta de la campaña.</p>'+(previous?.token&&(previous.deviceId!==incoming.deviceId||previous.token!==incoming.token)?'<aside class="info">Este celular ya tiene un acceso configurado. Al activar se reemplazará. Los registros locales se conservarán.</aside>':'')+'<div class="actions"><button class="primary" id="activate-device">Activar y comenzar</button><button id="activation-cancel">Cancelar</button></div><p id="activation-error" role="status"></p></section>';
+ $('#activation-cancel').onclick=dashboard;
+ $('#activate-device').onclick=async()=>{const button=$('#activate-device');button.disabled=true;try{await putSettings(incoming);await dashboard();notify('Celular activado. No necesitás volver a ingresar la clave.');syncAll(true);}catch{button.disabled=false;$('#activation-error').textContent='No pudimos guardar el acceso. Revisá el almacenamiento y volvé a intentar.';}};
+}
+window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#activar=')){activationHash=location.hash;history.replaceState(null,'',location.pathname+location.search);if(syncBusy){activationHash='';notify('Esperá a que termine el envío y volvé a escanear el QR.');return;}activateDevice();}});

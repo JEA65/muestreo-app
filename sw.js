@@ -1,4 +1,4 @@
-const CACHE='agua-shell-v5';
+const CACHE='agua-shell-v6';
 const FILES=['./','./index.html','./app.js','./core.js','./sync.js','./db.js','./style.css','./manifest.webmanifest','./icon.svg','./ada.svg','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('agua-shell-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});

@@ -20,3 +20,15 @@ export async function sendRecord(record,config,fetcher=fetch){
   return receipt;
  }finally{clearTimeout(timer);}
 }
+
+// La activación usa el fragmento: la clave no viaja al servidor de alojamiento.
+export function parseActivation(hash){
+ if(!hash.startsWith('#activar='))return null;
+ const match=/^#activar=v1\.([a-zA-Z0-9_-]{3,40})\.([a-f0-9]{64})$/.exec(hash);
+ if(!match)throw new Error('El enlace de activación está incompleto o no es válido. Volvé a escanear el QR.');
+ return {endpoint:DEFAULT_ENDPOINT,deviceId:match[1],token:match[2]};
+}
+export function activationLink(deviceId,token){
+ const hash='#activar=v1.'+deviceId+'.'+token;parseActivation(hash);
+ return 'https://jea65.github.io/muestreo-app/'+hash;
+}

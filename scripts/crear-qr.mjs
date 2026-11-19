@@ -1,0 +1,17 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import QRCode from 'qrcode';
+import {activationLink} from '../sync.js';
+const [accessFile,destination]=process.argv.slice(2);
+if(!accessFile||!destination)throw new Error('Uso: npm run crear-qr -- archivo-de-acceso.txt carpeta-privada');
+const access=await fs.readFile(accessFile,'utf8');
+const deviceId=access.match(/Código del equipo:\s*([a-zA-Z0-9_-]+)/)?.[1];
+const token=access.match(/Clave de envío:\s*([a-f0-9]{64})/)?.[1];
+const link=activationLink(deviceId,token);
+const dest=path.resolve(destination);const repo=path.resolve(new URL('..',import.meta.url).pathname.replace(/^\/(\w:)/,'$1'));
+if(dest===repo||dest.startsWith(repo+path.sep))throw new Error('Elegí una carpeta privada fuera del repositorio.');
+await fs.mkdir(dest,{recursive:true});
+const png=await QRCode.toBuffer(link,{type:'png',width:900,margin:4,errorCorrectionLevel:'M'});
+await fs.writeFile(path.join(dest,'Activar-'+deviceId+'.png'),png);
+await fs.writeFile(path.join(dest,'Activar-'+deviceId+'.html'),`<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><title>Activar Muestreo · ${deviceId}</title><style>body{font:18px system-ui;color:#073b57;background:#eef4f6;margin:0;padding:24px}main{max-width:600px;margin:auto;padding:28px;background:white;border-radius:16px;text-align:center}img{width:100%;max-width:420px}a{display:inline-block;padding:16px;background:#073b57;color:white;border-radius:8px}small{display:block;margin-top:24px}</style><main><h1>Muestreo</h1><h2>Activar ${deviceId}</h2><p>Escaneá el QR con la cámara del celular y tocá «Activar y comenzar».</p><img src="data:image/png;base64,${png.toString('base64')}" alt="QR privado de activación de ${deviceId}"><p>Si abriste este archivo en el celular:</p><a href="${link}" rel="noreferrer">Activar este celular</a><small>Acceso privado: compartir solo con quien utiliza este equipo. No subir a Drive público ni GitHub. Configurar cada celular con su propio equipo.</small></main></html>`);
+console.log('QR y tarjeta privada creados para '+deviceId+'. No se imprimen claves ni enlaces secretos.');
