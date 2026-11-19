@@ -1,0 +1,30 @@
+MUESTREO: CONFIGURACIÓN DEL SERVICIO DE GOOGLE
+
+Estado: código preparado; falta autorización, implementación y prueba real.
+
+Destino verificado:
+Carpeta: https://drive.google.com/drive/folders/1WMtblwAolG0Kw8kgJAlNdP2fGNRA79MS
+Planilla: https://docs.google.com/spreadsheets/d/1fb1YM3cBviZeykvcRrxfzXtP2HeHVlWIfrIvubY7qXU/edit
+
+1. Abrir la planilla con la cuenta que tiene permiso de edición de la planilla y la carpeta.
+2. Extensiones > Apps Script. Usar un proyecto vinculado a esta planilla.
+3. Pegar Code.gs en Código.gs y agregar otro archivo de secuencia de comandos llamado Schema, con Schema.gs. Guardar el proyecto como Muestreo - Recepción.
+4. Ejecutar configurarMuestreo desde el editor y autorizarlo con la cuenta responsable. Esta función crea únicamente la pestaña Registros; no modifica Hoja 1. La autorización incluye Drive, Sheets y Docs para generar los archivos.
+5. Recargar la planilla. En el menú Muestreo, elegir Crear acceso de un celular. Ingresar un código (ej. equipo-01). La clave se muestra una sola vez en un diálogo, nunca se escribe en la planilla ni se registra en el código. Conservarla de forma privada para configurar ese equipo.
+6. Apps Script > Implementar > Nueva implementación > Aplicación web. Ejecutar como la cuenta responsable. Acceso: Cualquier usuario, para que los teléfonos puedan enviar sin iniciar sesión en Google. El servicio igualmente exige la clave de cada equipo antes de escribir. El usuario debe realizar la autorización de Google y confirmar la publicación.
+7. Copiar la URL HTTPS terminada en /exec. Pasar al asistente solamente esa URL, no las claves.
+8. Una vez publicada la versión de la app con sincronización, abrir Configurar envío en cada celular. Cargar URL, código del equipo y su clave. Cada teléfono usa un código único. No cambiar el código de un equipo mientras tenga pendientes antiguos: los registros ya iniciados en el servidor pertenecen al equipo original.
+
+Prueba obligatoria antes de usar en campaña:
+- Enviar un punto PRUEBA con dos imágenes. Revisar la fila, fotos y PDF en Drive.
+- Volver a enviar la misma revisión: no debe agregar otra fila ni otros archivos.
+- Guardar dos puntos en modo avión y enviar al recuperar conexión con la app abierta.
+- Editar un registro y confirmar que la fila pasa a la revisión nueva y las anteriores se conservan en Drive.
+- Verificar en Android y en iPhone la respuesta del endpoint y la lectura del PDF.
+
+Estructura: carpeta raíz / ID del registro / revision-000001 / ficha.pdf, foto-1.jpg, foto-2.jpg, datos.json.
+Sheets contiene una fila por ID con la última revisión y enlaces. La confirmación solo se devuelve después de guardar todos los archivos y escribir la fila.
+Las claves quedan como hashes en las propiedades privadas del script. No ubicarlas en la carpeta pública ni en GitHub.
+La carpeta conserva sus permisos actuales. Los archivos heredan el acceso de la carpeta.
+La app requiere estar abierta para enviar; no promete envío con la app cerrada. Los archivos locales se conservan.
+Apps Script tiene cuotas. Probar la concurrencia y el volumen real del equipo antes de una campaña masiva.

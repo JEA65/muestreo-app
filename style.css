@@ -18,3 +18,4 @@ input,select,textarea{border:2px solid #526b79;color:#102a3a;font-weight:550}inp
 .report-header{background:#fff;color:#073b57;border-bottom:3px solid #073b57}.report-logo{display:block;width:120px;height:60px;object-fit:contain;margin-bottom:20px}.sheet h2{border-color:#073b57}
 @media(max-width:600px){.top{gap:8px;padding-left:14px;padding-right:14px}.brand{font-size:20px;gap:10px}.brand img{width:76px;height:38px}.brand small{font-size:13px}.badge{font-size:12px;padding:6px}.steps button{font-size:12px}.steps button span{font-size:12px}.clear{min-height:44px;font-size:14px}}
 @media print{body{color:#102a3a}.environment-report{break-before:auto}.report-logo{width:100px;height:50px;margin-bottom:12px}}
+.cloud-link{display:inline-flex;align-items:center;min-height:46px;padding:10px 16px;font-weight:650;color:#073b57;text-decoration:underline}

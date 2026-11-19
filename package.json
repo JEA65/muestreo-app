@@ -1,1 +1,11 @@
-{"name":"campanas-agua","version":"0.1.0","private":true,"type":"module","scripts":{"start":"node server.mjs","test":"node --test tests/*.test.mjs","check":"node --check app.js && node --check core.js && node --check db.js && node --check sw.js"}}
+{
+  "name": "campanas-agua",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check app.js && node --check core.js && node --check db.js && node --check sw.js && node --check sync.js"
+  }
+}
