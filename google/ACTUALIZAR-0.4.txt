@@ -1,0 +1,11 @@
+Actualización Muestreo 0.4 — pendiente de publicar
+
+1. Reemplazar Código.gs en el proyecto vinculado por la concatenación de google/Code.gs y google/Schema.gs.
+2. Guardar y ejecutar actualizarNombresCarpetas. Los enlaces y registros se conservan. Las carpetas históricas usan la campaña anterior; las nuevas, cuenca y sitio.
+3. Implementar > Gestionar implementaciones > Editar > Nueva versión. Conservar la misma URL /exec y los permisos existentes.
+4. Comprobar una recepción con schemaVersion 2 y pdfData: devuelve enlaces de fotos y ficha-vista-previa.pdf.
+5. Publicar el frontend junto con la dependencia PDF; npm ci, npm run check, npm test y node build.mjs.
+6. Probar QR, guardado offline de dos puntos, foto con rótulo, PDF descargado y sincronización sin duplicados.
+
+Compatibilidad: los campos retirados no se borran de los registros históricos. Los PDF antiguos se conservan; una revisión nueva enviada desde la app genera el nuevo diseño.
+Estado al preparar este archivo: 23 pruebas de código pasaron. Falta revisión visual del PDF, prueba real de foto y actualización de Apps Script. El control del navegador falló al iniciar su proceso auxiliar.

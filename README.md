@@ -1,63 +1,25 @@
 # Muestreo · ADA
 
-Primera versión local, 19 de noviembre de 2026. Aplicación separada de SEBA F1. No modifica ni envía datos al servicio de aforos.
+Aplicación de campo para registrar identificación del sitio, mediciones, caracterización ambiental y hasta dos fotos. Publicación: https://jea65.github.io/muestreo-app/
 
-## Abrir en esta PC
+## Versión 0.4
 
-Con Node.js instalado, ejecutar `npm start` dentro de esta carpeta y abrir **http://127.0.0.1:4173**. También se puede abrir `Iniciar app.cmd` con doble clic y mantener esa ventana abierta. Usar siempre la misma dirección: localhost y 127.0.0.1 tienen almacenamientos distintos.
+Identificación por cuenca y sitio de muestreo único, cuerpo/curso de agua, localidad/partido, observadores, fecha y hora. Los campos retirados se conservan en los registros históricos.
 
-No abrir index.html con doble clic: los módulos, el almacenamiento y el modo sin conexión necesitan un servidor web.
+Las fotos incorporan una franja inferior con ADA · Depto. Preservación y los datos disponibles al adjuntarlas. Si se corrigen esos datos, volver a adjuntar la foto. La imagen original no queda tapada.
 
-## Implementado
+La ficha PDF usa el contenido de la vista previa, con logo, fotos sin deformación y solo las observaciones ambientales completadas. El generador se incluye en la caché para trabajar sin conexión.
 
-- Formulario adaptable al celular en cinco pasos: sitio, mediciones, ambiente, fotos y revisión.
-- pH, conductividad, SDT, turbiedad y oxígeno disuelto. Unidades seleccionables y estados sin completar, medido, no medido y equipo no disponible. Acepta coma decimal.
-- Secciones ambientales basadas en las dos fichas de referencia. No se completan opciones automáticamente como «No».
-- GPS con captura de coordenadas, precisión y momento de captura; alternativa manual.
-- Hasta dos imágenes, optimizadas a JPEG de hasta 1600 px y guardadas con el registro. No se conserva el original completo en la app; permanece en la galería si ya existía allí.
-- IndexedDB para registros, fotos y un borrador activo; identificadores únicos y revisiones para posteriores sincronizaciones.
-- Nuevo punto conserva campaña, observadores y equipo, pero no arrastra mediciones ni ubicación del punto anterior.
-- Historial, búsqueda, edición y respaldo JSON de registros guardados, incluyendo fotos.
-- Vista de ficha con identificación, mediciones, fotografías y solo los campos ambientales completados; impresión o guardado PDF mediante el diálogo del navegador.
-- Service worker con recursos locales para reabrir y operar sin acceso al servidor después de la primera carga completa.
+Los registros se guardan en IndexedDB. La sincronización con la app abierta envía datos, fotos y PDF a Apps Script, Drive y Sheets. Cada equipo se activa con su QR privado. Nunca publicar las claves de los equipos ni incluirlas en el repositorio.
 
-## Estado y límites
+Carpetas: Cuenca · Sitio, con campaña anterior como alternativa para registros históricos. La identidad interna y el equipo propietario se conservan para reintentos sin duplicados.
 
-**Google Sheets, Drive, envío automático y generación de PDF en la nube todavía no están conectados.** La interfaz lo indica; ningún registro se etiqueta como sincronizado.
+## Desarrollo y publicación
 
-Esta es una base de desarrollo, no una versión lista para campaña real. Se debe descargar respaldo antes de limpiar datos del navegador. El respaldo es JSON; la restauración desde la interfaz aún no está implementada. El borrador se conserva localmente, pero no se incluye en el respaldo de registros guardados.
+Node.js 24. Ejecutar `npm ci`, `npm run check`, `npm test` y `node build.mjs`. `npm start` abre el servidor en http://127.0.0.1:4173. El flujo de GitHub Actions publica `dist/` cuando se actualiza `main`.
 
-La PWA debe publicarse en HTTPS para instalarla y usar GPS en un celular. Esta dirección local solo sirve en esta PC. La instalación, permisos GPS, cámara y almacenamiento deben verificarse en los teléfonos reales antes de la campaña. En iPhone el acceso a cámara/galería depende de la interfaz del sistema. No se garantiza sincronización con la app cerrada.
+Apps Script: concatenar `google/Code.gs` y `google/Schema.gs` en Código.gs, guardar y actualizar la implementación existente con una nueva versión, conservando URL y permisos. `actualizarNombresCarpetas` migra los nombres históricos sin cambiar enlaces.
 
-El PDF actual se guarda manualmente desde el navegador. La paginación final debe validarse con registros completos y fotos del sitio; no es todavía una plantilla institucional aprobada. Se incorporó el logo de ADA proporcionado por el usuario. No se incorporaron clasificaciones de calidad de agua.
+## Uso en campo
 
-## Próxima etapa: Google
-
-1. Definir cuenta propietaria y carpeta de campañas en Drive, planilla de datos y personas con acceso de lectura.
-2. Implementar un servicio autenticado de recepción. No usar una URL pública sin autorización para escribir en Drive. No poner credenciales privadas en el código del navegador.
-3. Sincronizar por `id` y `revision`, conservar copia local y confirmar datos, fotos y PDF antes de marcar la revisión como sincronizada.
-4. Si se corta la conexión, reintentar solo revisiones sin confirmación. El servidor debe deduplicar cada identificador y revisión y responder los enlaces verificados de los archivos.
-5. Si se edita un registro durante un envío, confirmar únicamente la revisión enviada; la nueva debe seguir pendiente. Resolver conflictos entre dispositivos explícitamente.
-6. Generar una ficha PDF con formato fijo en Drive y una fila con enlaces en Sheets. Dirección verá únicamente las revisiones que terminaron de subir, con hora del relevamiento y hora de sincronización diferenciadas.
-
-Apps Script es una opción compatible con el proyecto anterior, pero su implementación no está en aquel repositorio y se debe configurar un servicio separado. La autenticación y los permisos de Google se completan con la cuenta elegida por el usuario.
-
-## Archivos
-
-- `core.js`: esquema ambiental, parámetros, validación e identidad de registros.
-- `db.js`: persistencia en IndexedDB.
-- `app.js`: formularios, fotos, GPS, historial, respaldo y ficha imprimible.
-- `style.css`: interfaz móvil y formato de impresión A4.
-- `sw.js` / `manifest.webmanifest`: base de funcionamiento offline e instalación.
-- `server.mjs`: servidor de prueba limitado a los archivos de la app, solo en loopback.
-
-## Verificación
-
-`npm run check` verifica sintaxis. `npm test` ejecuta pruebas con Node, sin instalar dependencias.
-
-Se verificaron en navegador dos registros independientes, cinco valores con coma decimal, dos fotos, recuperación al recargar y creación del segundo punto con el servidor detenido. La prueba con servidor detenido comprueba la caché de la app y el guardado local; no sustituye la prueba de modo avión en un teléfono. Datos de demostración identificados como DEMO-01 y DEMO-02, sin datos de campaña reales.
-
-## Ajustes de identidad y lectura de campo
-
-Nombre de instalación: Muestreo. Logo ADA original en encabezado, ficha e íconos PNG. Fondo blanco, texto oscuro y controles con bordes marcados. La caracterización omite filas y secciones vacías y conserva respuestas explícitas como No y No observado. Se eliminó el salto de página obligatorio de esa sección. Nueve pruebas de lógica aprobadas y revisión visual a 390 px. La legibilidad bajo sol y la apariencia del lanzador se deben comprobar en el teléfono real.
-
+Abrir la app con conexión antes de salir y verificar el aviso de disponibilidad sin conexión. Descargar respaldos JSON antes de limpiar el navegador. Los permisos de GPS, cámara y funcionamiento en modo avión deben comprobarse en los teléfonos reales. No se garantiza sincronización con la app cerrada.

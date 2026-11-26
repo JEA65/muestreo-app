@@ -5,3 +5,6 @@ dist/
 .env.*
 *.jpg
 *.tar.gz
+
+# Biblioteca PDF generada desde dependencias fijadas en package-lock.json
+html2pdf.bundle.min.js
