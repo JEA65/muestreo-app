@@ -21,3 +21,5 @@ input,select,textarea{border:2px solid #526b79;color:#102a3a;font-weight:550}inp
 .cloud-link{display:inline-flex;align-items:center;min-height:46px;padding:10px 16px;font-weight:650;color:#073b57;text-decoration:underline}
 
 .pdf-download{align-self:center;font-size:14px;text-decoration:underline;padding:10px}
+
+.remove-hint{flex-basis:100%;font-size:12px;color:#344c5a}[data-remove-local]:disabled{cursor:not-allowed}

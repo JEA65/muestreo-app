@@ -10,6 +10,7 @@
     "crear-qr": "node scripts/crear-qr.mjs"
   },
   "devDependencies": {
+    "fake-indexeddb": "^6.2.8",
     "qrcode": "^1.5.4"
   },
   "dependencies": {

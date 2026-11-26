@@ -23,3 +23,5 @@ Apps Script: concatenar `google/Code.gs` y `google/Schema.gs` en Código.gs, gua
 ## Uso en campo
 
 Abrir la app con conexión antes de salir y verificar el aviso de disponibilidad sin conexión. Descargar respaldos JSON antes de limpiar el navegador. Los permisos de GPS, cámara y funcionamiento en modo avión deben comprobarse en los teléfonos reales. No se garantiza sincronización con la app cerrada.
+
+En Mis registros, «Quitar del dispositivo» elimina solo la copia local después de confirmar datos, fotos y PDF de la última revisión. Drive y Sheets se conservan. Los registros pendientes y aquellos con un borrador asociado no se pueden quitar. La comprobación se repite en una transacción antes de borrar, para proteger cambios de otras pestañas.

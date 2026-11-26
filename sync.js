@@ -7,6 +7,8 @@ export function receiptValid(record,receipt){
  const link=(value,host,path)=>{try{const u=new URL(value);return u.protocol==='https:'&&u.hostname===host&&u.pathname.startsWith(path);}catch{return false;}};
  return receipt?.ok===true&&receipt.id===record.id&&receipt.revision===record.revision&&link(receipt.pdfUrl,'drive.google.com','/file/d/')&&link(receipt.sheetUrl,'docs.google.com','/spreadsheets/d/')&&Array.isArray(receipt.photoUrls)&&receipt.photoUrls.length===record.photos.length&&receipt.photoUrls.every(url=>link(url,'drive.google.com','/file/d/'));
 }
+// Only a complete receipt for the current revision permits removing its local copy.
+export function canRemoveLocal(record){return Boolean(record&&Array.isArray(record.photos)&&Number.isInteger(record.revision)&&record.revision>0&&!isPending(record)&&receiptValid(record,record.remote));}
 export async function sendRecord(record,config,fetcher=fetch,pdfData=null){
  if(!validEndpoint(config.endpoint)||!config.deviceId||!config.token)throw new Error('Configurá el acceso de este equipo antes de sincronizar.');
  const payload={apiVersion:1,deviceId:config.deviceId,token:config.token,record:{schemaVersion:record.schemaVersion,id:record.id,revision:record.revision,createdAt:record.createdAt,updatedAt:record.updatedAt,fields:record.fields,measurements:record.measurements,photos:record.photos}};
